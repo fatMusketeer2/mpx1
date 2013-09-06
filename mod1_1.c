@@ -167,8 +167,8 @@ void help(int command){
 			break;
 
 		default:
-			sprintf(buff,"Type 'help' to see this list.\n");
-	  	max = strlen(buff);
+		  sprintf(buff,"Type 'help' to see this list.\n");
+	          max = strlen(buff);
 		  sys_req(WRITE,TERMINAL,buff,&max);
 
 		  sprintf(buff,"Type 'help name' to find out more of the command 'name'.\n");
@@ -183,7 +183,7 @@ void help(int command){
 		  max = strlen(buff);
 		  sys_req(WRITE,TERMINAL,buff,&max);
 
-		  sprintf(buff,"%-25s %-10s\n","DIR","Display all files in current directory.");
+		  sprintf(buff,"%-25s %-10s\n","LS","Display all files in current directory.");
 		  max = strlen(buff);
 		  sys_req(WRITE,TERMINAL,buff,&max);
 
