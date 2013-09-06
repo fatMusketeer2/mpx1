@@ -15,5 +15,5 @@ int match(char * command);
 void help(int command);
 void version();
 void displayDate();
-void setDate(char * d, char* m, char *y);
+void setDate(char *s);
 void ls(char * path);
