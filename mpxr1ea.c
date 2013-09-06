@@ -1,7 +1,6 @@
 #include "mpx_supt.h" 	//included by e.a
-#include "help.h"	//included by e.a
+#include "MPXR1ea.h"
 #include <string.h>	//included by e.a
-#include "commhndl.h"   //included by e.a
 
 
 int main(void){
