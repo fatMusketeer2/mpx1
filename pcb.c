@@ -350,7 +350,7 @@ int showReadyPCB(int showAll){
 				if(showAll == 0){
 					write("\nREADY QUEUE IS EMPTY\n");
 				}
-				return i;
+				return 1;
 			}
 			
 			write("\nNAME\tCLASS\tPRIORITY\tSTATE\n");
@@ -399,26 +399,26 @@ int showReadyPCB(int showAll){
 				curr = curr->next;
 				i++;
 			}	
-	return i;
+			return i;
 }
 
-int showBlockedPCB(int count, int showAll){
-	int i = count;
+int showBlockedPCB(int showAll){
+	int i = 1;
 	PCB * curr = blockedQ->head;
 	char buff[30];
 	int buffSize = 30;
-	char * string;
 
+	if(showAll == 1) i = readyQ->count +suspReadyQ->count;
 	if(blockedQ->count == 0 && suspBlockedQ->count == 0){
 		if(showAll == 0){
 			write("\nBLOCKED QUEUE IS EMPTY\n");
 		}
-		
-		return i;
+		printf("HERE");
+		return 1;
 	}
 	
 		
-		if(i == 1) write("\nNAME\t\CLASS\tPRIORITY\tSTATE\n");
+	if(showAll == 0 && i == 0) write("\nNAME\t\CLASS\tPRIORITY\tSTATE\n");
 	
 	while(curr != NULL){
 		if(i == 18){
@@ -432,8 +432,8 @@ int showBlockedPCB(int count, int showAll){
 		write(curr->name);
 		if(curr->class == APP) write("\tApplication");
 		else if(curr->class == SYS) write("\tSystem");				
-		sprintf(string, "  %d  ", curr->priority);
-		write(string);
+		sprintf(buff, "  %d  ", curr->priority);
+		write(buff);
 		
 		write("Blocked\n");
 		
@@ -456,20 +456,22 @@ int showBlockedPCB(int count, int showAll){
 		if(curr->class == APP) write("\tApplication");
 		else if(curr->class == SYS) write("\tSystem");
 				
-		sprintf(string, "  %d  ", curr->priority);
-		write(string);
+		sprintf(buff, "  %d  ", curr->priority);
+		write(buff);
 					
 		write("Blocked-suspended\n");
 			
 		curr = curr->next;
 		i++;
 	}	
-	return i;			
+	return i;
 }
 void showAllPCB(){
-	int count;
-	count = showReadyPCB(1);
-	if(count == 1 && showBlockedPCB(count, 1)) write("\nAll queues are empty\n");
+	int countReady;
+	int countBlocked;
+	countReady = showReadyPCB(1);
+	countBlocked = showBlockedPCB(1);
+	if(countReady == 1 && countBlocked == 1) write("\nAll queues are empty\n");
 	
 }
 

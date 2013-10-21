@@ -397,7 +397,7 @@ void show_blocked(int op){
 	if(tooManyArgs()) return;
 	switch(op) {
 		case EXEC:
-			showBlockedPCB(1, 0);
+			showBlockedPCB(0);
 			break;
 		case HELP:
 		  write("'show_blocked': shows all the processes in the blocked queue\n");

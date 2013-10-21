@@ -51,6 +51,6 @@ void resumePCB(char * name);
 void setPCBPriority(char* name, int pri);
 void showPCB(char * name);
 int showReadyPCB(int showAll);
-int showBlockedPCB(int count, int showAll);
+int showBlockedPCB(int showAll);
 void showAllPCB();
 
