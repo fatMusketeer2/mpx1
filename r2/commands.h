@@ -10,12 +10,10 @@ void version(int op);
 void getDate(int op);
 void setDate(int op);
 void list(int op);
-void load(int op);
-void dispatchComm(int op);
 void clear();
+void pageinate();
 //r2
 void create_pcb(int op);
-void delete_pcb(int op);
 void block(int op);
 void unblock(int op);
 void suspend(int op);
@@ -26,3 +24,9 @@ void show_ready(int op);
 void show_blocked(int op);
 void show_all(int op);
 int tooManyArgs();
+
+//r3-r4
+void load(int op);
+void loadProcs(int op);
+void dispatchComm(int op);
+void terminate(int op);

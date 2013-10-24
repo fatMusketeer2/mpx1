@@ -6,7 +6,7 @@ Shell* MainShell;
 
 int main(){
   
-  sys_init(MODULE_R3); //init MODULE_R2
+  sys_init(MODULE_R4); //init MODULE_R2
   initR2();
   initR3();
 	prompt(); //start the prompt
@@ -28,18 +28,18 @@ void prompt(){
   write("WELCOME to MPX R2\n");
   write("Type HELP for a command list\n\n");
 	while(MainShell->isRunning){ //loop while MainShell is running.
-    
+		
 		write(":>"); //prompt user for input.
-		input = trim(read(500)); //read input and trim it.
+		input = trim(read(100)); //read input and trim it.
     
 		command = strtok(input, " ,-|");//grab command from input.
     //sys_free_mem(input); //free input memory.
     result = executeCommand(EXEC, command); //execute command.
     
     if(strcmpi(command, "exit") == 0) MainShell->isRunning = 0; //catch exit command.
-    if(result == 0) write("Command not found!\n"); //command not valid
-
-    sys_free_mem(input);
+    if(result == 0 && strlen(input) != 0) write("Command not found!\n"); //command not valid
+	
+	sys_free_mem(input);
 	}
 
 }
@@ -63,7 +63,7 @@ char* read(int size){
   
   //remove trailing '\n' if input contains it.
   lc = strlen(input)-1;
-
+	
   if(input[lc] == '\n') input[lc] = '\0';
   
   

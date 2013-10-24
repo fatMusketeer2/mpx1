@@ -1,4 +1,4 @@
-#ifndef R3_H
+
 #define R3_H
 //#define IDLE 1
 typedef struct context{
@@ -16,14 +16,18 @@ typedef struct params {
 
 void interrupt sys_call();
 void interrupt dispatcher();
-void load_procs();
 
+//r3 proto types
+void load_procs();
 void test1_R3();
 void test2_R3();
 void test3_R3();
 void test4_R3();
 void test5_R3();
 void loadUpQueue(char[],int,int);
-void initSys();
+void initR3();
 
-#endif
+//r4 
+void loadProgram(char *, int);
+
+

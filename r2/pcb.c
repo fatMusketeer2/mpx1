@@ -51,7 +51,7 @@ PCB * allocatePCB(){
 * returns: 0 if successful, or ERRORCODE
 */
 int freePCB( PCB * process){
-	return sys_free_mem(process);
+	return sys_free_mem(process->stackBase) && sys_free_mem(process->loadAddress) && sys_free_mem(process);
 }
 
 /* sets up a PCB
@@ -74,7 +74,7 @@ PCB* setupPCB(char * procName, int procPriority, int procClass){
 	strcpy(newPCB->name, procName);
 	newPCB->class = procClass;
 	newPCB->priority = procPriority;
-	newPCB->state = READY;
+	newPCB->state = SUSP_READY;
 	newPCB->next = NULL;
 	newPCB->prev = NULL;
 	newPCB->memorySize = SYS_STACK_SIZE;
@@ -218,7 +218,6 @@ void createPCB(char * name, int pri, int class){
 	
 
 	if(newPCB != NULL){
-		newPCB->state = SUSP_READY;
 		insertPCB(newPCB);
 		write("process inserted into the suspended ready queue\n");
 	};	
@@ -349,7 +348,7 @@ int showReadyPCB(int showAll){
 	int i = 1;
 	 PCB * curr = readyQ->head;
 	char buff[30];
-	int buffSize = 30;
+	
 	char * string;
 	
 			if(readyQ->count == 0 && suspReadyQ->count == 0){
@@ -362,11 +361,9 @@ int showReadyPCB(int showAll){
 			write("\nNAME\tCLASS\tPRIORITY\tSTATE\n");
 			while(curr != NULL){
 				if(i == 18){
-					write("Press Enter to continue\n");
-					sys_req(READ,TERMINAL, buff, &buffSize);
+					pageinate();
 					i = 1;
-					clear();
-					write("\nNAME\t\tCLASS\tPRIORITY\tSTATE\n");
+					write("NAME\t\tCLASS\tPRIORITY\tSTATE\n");
 				}
 				
 				write(curr->name);
@@ -385,11 +382,9 @@ int showReadyPCB(int showAll){
 			curr = suspReadyQ->head;
 				
 			while(curr != NULL){
-				if(i == 15){
-					write("Press Enter to continue\n");
-					sys_req(READ,TERMINAL, buff, &buffSize);
+				if(i == 18){
+					pageinate();
 					i = 1;
-					clear();
 					write("NAME\t\tCLASS\tPRIORITY\tSTATE\n");
 				}
 				
@@ -412,7 +407,7 @@ int showBlockedPCB(int showAll){
 	int i = 1;
 	PCB * curr = blockedQ->head;
 	char buff[30];
-	int buffSize = 30;
+	
 
 	if(showAll == 1) i = readyQ->count +suspReadyQ->count;
 	if(blockedQ->count == 0 && suspBlockedQ->count == 0){
@@ -428,10 +423,8 @@ int showBlockedPCB(int showAll){
 	
 	while(curr != NULL){
 		if(i == 18){
-			write("Press Enter to continue\n");
-			sys_req(READ,TERMINAL, buff, &buffSize);
+			pageinate();
 			i = 1;
-			clear();
 			write("NAME\t\tCLASS\tPRIORITY\tSTATE\n");
 		}
 				
@@ -450,11 +443,9 @@ int showBlockedPCB(int showAll){
 	curr = suspBlockedQ->head;
 		
 	while(curr != NULL){
-		if(i == 15){
-			write("Press Enter to continue\n");
-			sys_req(READ,TERMINAL, buff, &buffSize);
+		if(i == 18){
+			pageinate();
 			i = 1;
-			clear();
 			write("NAME\t\tCLASS\tPRIORITY\tSTATE\n");
 		}
 				

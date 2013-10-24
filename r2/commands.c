@@ -13,7 +13,7 @@ int executeCommand(int op, char* command){
 	else if(strcmpi(command, "date") == 0) getDate(op);
 	else if(strcmpi(command, "setdate") == 0) setDate(op);
 	else if(strcmpi(command, "create_pcb") == 0) create_pcb(op);
-	else if(strcmpi(command, "delete_pcb") == 0) delete_pcb(op);
+	else if(strcmpi(command, "terminate") == 0) terminate(op);
 	else if(strcmpi(command, "block") == 0) block(op);
 	else if(strcmpi(command, "unblock") == 0) unblock(op);
 	else if(strcmpi(command, "suspend") == 0) suspend(op);
@@ -24,6 +24,7 @@ int executeCommand(int op, char* command){
 	else if(strcmpi(command, "show_blocked") == 0) show_blocked(op);
 	else if(strcmpi(command, "show_all") == 0) show_all(op);
 	else if(strcmpi(command, "load") == 0) load(op);
+	else if(strcmpi(command, "load_procs") == 0) loadProcs(op);
 	else if(strcmpi(command, "dispatch") == 0) dispatchComm(op);
 	else if(strcmpi(command, "clear") == 0) clear();
   else return 0;
@@ -64,7 +65,7 @@ void help(int op){
 		//new methods
 		write("create_pcb [NAME] [PRIORITY] [CLASS]:-  ...\n");
 		write("\t...Creates a PCB and inserts into a queue\n");
-		write("delete_pcb [NAME]\t:- deletes a pcb from the queue\n");
+		write("terminate [NAME]\t:- deletes a pcb from the queue\n");
 		write("block [NAME]\t\t:- puts a PCB into the blocked state\n");
 		write("unblock [NAME]\t\t:- puts a PCB into the ready state\n");
 		write("suspend [NAME]\t\t:- puts a PCB into the suspended state\n");
@@ -74,6 +75,10 @@ void help(int op){
 		write("show_ready\t\t:- shows all the PCBs in the ready queue\n");
 		write("show_blocked\t\t:- shows all the PCBs in the blocked queue\n");
 		write("show_all\t\t:- shows all the PCBs in all the queues\n");
+		pageinate();
+		write("load_procs\t\t:- loads the 5 test processes into the ready queue\n");
+		write("load [NAME] [PRIORITY]:- loads a process into the queue, priority optional\n");
+		write("dispatch\t\t:- runs all of the processes in the ready queue\n");
       }
       break;
     case HELP:
@@ -162,6 +167,7 @@ void list(int op){
   char* path;
   char nameBuff[16], buffer[50];
   int buffSize = 16;
+  int i = 1;
   long fileSize;
   
   switch(op) {
@@ -170,9 +176,14 @@ void list(int op){
       if((path = strtok(NULL, " ,-|")) != NULL) sys_open_dir(path);
       else sys_open_dir("\0");
 	 
-	if(tooManyArgs()) return;
+		if(tooManyArgs()) return;
 	 
       while(sys_get_entry(nameBuff, buffSize, &fileSize) != ERR_SUP_NOENTR){
+		if (i == 18){
+			pageinate();
+			i = 1;
+		}
+		
         sprintf(buffer, "%s.mpx\t%d\n", nameBuff, fileSize);
         write(buffer);
       }
@@ -245,7 +256,7 @@ void create_pcb(int op){
 	}
 	
 }
-void delete_pcb(int op){
+void terminate(int op){
 	char * name;
 	
 	switch(op) {
@@ -254,12 +265,12 @@ void delete_pcb(int op){
 			if((name = strtok(NULL, " ,-|")) != NULL) {
 				if(tooManyArgs()) return;
 			deletePCB(name);
-			} else write("Incorrect command syntax: Try delete_pcb [NAME]\n");
+			} else write("Incorrect command syntax: Try terminate [NAME]\n");
 			 
 			 break;
 		case HELP:
 		if(tooManyArgs()) return;
-		  write("'Delete_pcb [name]': Deletes the process by the name given\n");
+		  write("'terminate [name]': Deletes and frees the process by the name given\n");
 		  break;
 	}
 }
@@ -422,14 +433,54 @@ void show_all(int op){
 		}
 }
 
+//SAME AS CREATE_PCB FOR NOW
 void load(int op){
+
+	//declare variables;
+	PCB * newPCB;
+	char * name;
+	char * priorityString;
+	int priority = 0;
+	
+	switch(op){
+		case EXEC:
+			if((name = strtok(NULL, " ,-|")) != NULL){
+				if((priorityString = strtok(NULL, " ,|")) != NULL){
+					if(tooManyArgs()) return;
+					
+					priority = atoi(priorityString);
+					if(priority < -128 || priority > 127){
+						write("Priority must be an integer between -128 and +127\n");
+						break;
+					}	
+				}
+			}else {
+				write("Incorrect command syntax: Try LOAD [NAME] [PRIORITY]\n");
+				break;
+			}	
+			write("");
+			loadProgram(name, priority);
+			
+			break;
+		case HELP:
+			if(tooManyArgs()) return;
+			 write("'LOAD [name] [priority] [class]': Loads a process and puts it in the ready, suspended state.\n");
+			 write("First argument - process name: must be unique and less than 15 characters.\n");
+			 write("the mpx file must exist in the current directory\n");
+			 write("OPTIONAL Second argument - priority: must be an integer between -128 to 127\n");
+			 write("The default priority is 0\n\n");
+			 break;
+	}
+}
+
+void loadProcs(int op){
 	if(tooManyArgs()) return;
 	switch(op){
 		case EXEC:
 			load_procs();
 			break;
 		case HELP:
-			write("NEED TO WRITE HELP HERE");
+			write("Loads the 5 test processes into the ready queue\n\n");
 			break;
 		}		
 
@@ -442,7 +493,7 @@ void dispatchComm(int op){
 			dispatcher();
 			break;
 		case HELP:
-			write("NEED TO WRITE HELP");
+			write("Dispatches the processes in the ready queue\n\n");
 		break;
 
 		}
@@ -462,4 +513,12 @@ int tooManyArgs(){
 		 return 1;
 	}
 	return 0;
+}
+
+void pageinate(){
+	char buff[5];
+	int buffSize = 5;
+	write("\nPress Enter to view the next page\n");
+	sys_req(READ,TERMINAL, buff, &buffSize);
+	clear();
 }
