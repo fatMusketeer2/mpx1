@@ -1,5 +1,10 @@
+#include "pcb.h"
+#include "mpx_supt.h"
+#include "r3.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
-#include <main.h>
 queue *readyQ;
 queue *blockedQ;
 queue *suspReadyQ;
@@ -36,8 +41,8 @@ suspBlockedQ-> tail = NULL;
 */
 PCB * allocatePCB(){
 	PCB *newPCB = sys_alloc_mem(sizeof(PCB));
-	//newPCB->stackBase = sys_alloc_mem(STACKSIZE);
-	//newPCB->stackTop = stackBase + STACKSIZE;
+	newPCB->stackBase = (unsigned char *) sys_alloc_mem(sizeof(unsigned char*)*SYS_STACK_SIZE);
+	newPCB->stackTop =  newPCB->stackBase + SYS_STACK_SIZE - sizeof(context);
 	return newPCB;
 }
 
@@ -53,7 +58,7 @@ int freePCB( PCB * process){
 * parameters: char * name, int class, int priority 
 * returns: pointer to the PCB, or NULL if error.
 */
-PCB* setupPCB(char * procName, int procPriority, int procclass){
+PCB* setupPCB(char * procName, int procPriority, int procClass){
 	PCB *newPCB;
 
 	if(findPCB(procName) != NULL){
@@ -67,12 +72,12 @@ PCB* setupPCB(char * procName, int procPriority, int procclass){
 
 	newPCB = allocatePCB();
 	strcpy(newPCB->name, procName);
-	newPCB->class = procclass;
+	newPCB->class = procClass;
 	newPCB->priority = procPriority;
 	newPCB->state = READY;
 	newPCB->next = NULL;
 	newPCB->prev = NULL;
-	
+	newPCB->memorySize = SYS_STACK_SIZE;
 	return newPCB;
 }
 
@@ -134,13 +139,13 @@ void insertPCB(PCB * process){
 				q->tail = process;
 				process->next = NULL;
 				process->prev = NULL;
-			}else if(q->tail->priority > process->priority){ //last element
+			}else if(q->tail->priority >= process->priority){ //last element
 				process->prev = q->tail;
 				process->next = NULL;
 				q->tail->next = process;
 				q->tail = process;	
 			}else{ //any other element
-				while(temp->priority > process->priority){ 
+				while(temp->priority >= process->priority){ 
 					temp = temp->next;
 					i++;
 				}
@@ -202,6 +207,7 @@ void removePCB(PCB * process){
 	}
 	
 	q->count--;
+	
 }
 	
 	
@@ -413,7 +419,7 @@ int showBlockedPCB(int showAll){
 		if(showAll == 0){
 			write("\nBLOCKED QUEUE IS EMPTY\n");
 		}
-		printf("HERE");
+		
 		return 1;
 	}
 	
@@ -512,7 +518,12 @@ void cleanR2(){
 	sys_free_mem(blockedQ);
 	sys_free_mem(suspBlockedQ);
 }	
+
+
+PCB* getNextReady(){
 	
+	return readyQ->head;
+}
 	
 	
 	

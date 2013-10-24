@@ -1,8 +1,4 @@
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-
 #define EXEC 		  0
 #define HELP 		  1
 
@@ -14,6 +10,8 @@ void version(int op);
 void getDate(int op);
 void setDate(int op);
 void list(int op);
+void load(int op);
+void dispatchComm(int op);
 void clear();
 //r2
 void create_pcb(int op);

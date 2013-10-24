@@ -1,5 +1,8 @@
-#include <main.h>
 
+#include "commands.h"
+#include "main.h"
+#include "pcb.h"
+#include "r3.h"
 
 int executeCommand(int op, char* command){
   
@@ -20,6 +23,8 @@ int executeCommand(int op, char* command){
 	else if(strcmpi(command, "show_ready") == 0) show_ready(op);
 	else if(strcmpi(command, "show_blocked") == 0) show_blocked(op);
 	else if(strcmpi(command, "show_all") == 0) show_all(op);
+	else if(strcmpi(command, "load") == 0) load(op);
+	else if(strcmpi(command, "dispatch") == 0) dispatchComm(op);
 	else if(strcmpi(command, "clear") == 0) clear();
   else return 0;
   
@@ -404,7 +409,7 @@ void show_blocked(int op){
 		  break;
 	}
 }
-void show_all(int op){\
+void show_all(int op){
 	if(tooManyArgs()) return;
 	switch(op){
 		case EXEC:
@@ -416,6 +421,35 @@ void show_all(int op){\
 
 		}
 }
+
+void load(int op){
+	if(tooManyArgs()) return;
+	switch(op){
+		case EXEC:
+			load_procs();
+			break;
+		case HELP:
+			write("NEED TO WRITE HELP HERE");
+			break;
+		}		
+
+}
+
+void dispatchComm(int op){
+	if(tooManyArgs()) return;
+	switch(op){
+		case EXEC:
+			dispatcher();
+			break;
+		case HELP:
+			write("NEED TO WRITE HELP");
+		break;
+
+		}
+
+
+}
+
 
 void clear(){
 	sys_req(CLEAR, TERMINAL, NULL, NULL);

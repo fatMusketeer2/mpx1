@@ -1,14 +1,17 @@
-#include <string.h>
-#include <stdarg.h>
+
+ 
 
 #define RUNNING 1
 #define READY 2
 #define BLOCKED 3
 #define SUSP_READY 4
 #define SUSP_BLOCKED 5
-#define SYS 99
-#define APP 98
-#define STACKSIZE 1024
+#define SYS 1
+#define APP 0
+#define SYS_STACK_SIZE 1024
+
+
+
 
 typedef struct PCB {
         char name[15];
@@ -30,6 +33,13 @@ typedef struct queue{
         PCB *head;
         PCB *tail;
 } queue;
+
+extern queue *readyQ;
+extern queue *blockedQ;
+extern queue *suspReadyQ;
+extern queue *suspBlockedQ;
+
+
 
 void initR2();
 void cleanR2();
@@ -53,4 +63,4 @@ void showPCB(char * name);
 int showReadyPCB(int showAll);
 int showBlockedPCB(int showAll);
 void showAllPCB();
-
+PCB* getNextReady();

@@ -1,12 +1,14 @@
 
-#include <main.h>
+#include "main.h"
+#include "commands.h"
 
 Shell* MainShell;
 
 int main(){
   
-  sys_init(MODULE_R2); //init MODULE_R2
+  sys_init(MODULE_R3); //init MODULE_R2
   initR2();
+  initR3();
 	prompt(); //start the prompt
 	cleanR2();
   sys_exit(); //gracefully exit sys.
