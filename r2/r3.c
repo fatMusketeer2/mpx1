@@ -44,22 +44,22 @@ void interrupt sys_call()
         ss_save = _SS;
         sp_save = _SP;
         param_ptr = (params*)((unsigned char *)MK_FP(ss_save, sp_save) + sizeof(context));
-
         new_ss = FP_SEG(&sys_stack);
         new_sp = FP_OFF(&sys_stack) + SYS_STACK_SIZE;
         _SS = new_ss;
         _SP = new_sp;
         
-        if(param_ptr->op_code == IDLE) {
-                //removePCB(cop);
+		switch(param_ptr->op_code){
+			case IDLE: 
                 cop->state = READY;
                 cop->stackTop = (unsigned char *)MK_FP(ss_save,sp_save);
                 insertPCB(cop);
-        }
-        else {
-                //removePCB(cop);
+				break;
+       
+			case EXIT:       
                 freePCB(cop);
                 cop = NULL;
+				break;
         }
         _SS = ss_save;
         _SP = sp_save;
@@ -123,14 +123,14 @@ void initR3() {
 
 void loadProgram(char* file, int priority) {
 		
-        int *prog_len_p;
-        int *start_offset_p;
+        int prog_len;
+        int start_offset;
         int check_ret;
         int sys_load_ret;
         PCB *newPCB;
         context *con;
         
-        check_ret = sys_check_program("\0", file, prog_len_p, start_offset_p);
+        check_ret = sys_check_program("\0", file, &prog_len, &start_offset);
         if(check_ret == ERR_SUP_FILNFD) {
 			write("File not found in the current directory\n");
             return;
@@ -141,9 +141,9 @@ void loadProgram(char* file, int priority) {
         newPCB = setupPCB(file, priority, APP);
 		
 		if(newPCB != NULL){
-			newPCB->memorySize = *prog_len_p;
-			newPCB->loadAddress = (unsigned char *)sys_alloc_mem(*prog_len_p);
-			newPCB->execAddress = (*start_offset_p + newPCB->loadAddress);
+			newPCB->memorySize = prog_len;
+			newPCB->loadAddress = (unsigned char *)sys_alloc_mem(prog_len);
+			newPCB->execAddress = (start_offset + newPCB->loadAddress);
 			con = (context*) newPCB->stackTop;
 			con->IP = FP_OFF(newPCB->execAddress);
 			con->CS = FP_SEG(newPCB->execAddress);
