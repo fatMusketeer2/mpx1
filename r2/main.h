@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "date.h"
 #include "mpx_supt.h"
 
 struct ShellStruct;
