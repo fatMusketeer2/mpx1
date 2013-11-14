@@ -1,28 +1,30 @@
 #define CLOSED 1
 #define OPEN 2
-
-#define WRITING 10
-#define READING 11
-
-#define OK 0
-
+#define WRITING 3
+#define READING 4
 #define UNSET 0
 #define SET 1
 
-#define INVALID_EVENT_FLAG_POINTER -101
-#define INVALID_BAUD_RATE_DIVISOR -102
-#define PORT_ALREADY_OPEN -103
-#define PORT_NOT_OPEN -201
-#define PORT_NOT_OPEN_READ -301
-#define INVALID_BUFFER_ADDRESS -302
-#define INVALID_COUNT -303
-#define DEVICE_IS_BUSY -304
-#define PORT_NOT_OPEN_WRITE -401
+//OPEN ERRORS
+#define INVALID_E_FLAG -101
+#define INVALID_BRD -102
+#define ALREADY_OPEN -103
+//CLOSE ERRORS
+#define PORT_CLOSED -201
+
+//READ ERRORS
+#define PORT_CLOSED_READ -301
+#define INVALID_BUFFER_ADDRESS_READ -302
+#define INVALID_COUNT_READ -303
+#define DEVICE_BUSY_READ -304
+//WRITE ERRORS
+#define PORT_CLOSED_WRITE -401
 #define INVALID_BUFFER_ADDRESS_WRITE -402
 #define INVALID_COUNT_WRITE -403
-#define DEVICE_IS_BUSY_WRITE -404
+#define DEVICE_BUSY_WRITE -404
 
-#define RING_BUFFER_SIZE 100
+#define RING_BUFFER_SIZE 150
+
 
 #define COM1_INT_ID 0x0C
 #define COM1_BASE 0x3F8
@@ -36,31 +38,30 @@
 #define COM1_MS COM1_BASE+6
 #define PIC_MASK 0x21
 #define PIC_CMD 0x20
-#define EOI 0x20
 
 
-int com_open(int *eflag_p, int baud);
 void interrupt(*oldfunc)(void);
+int com_write(char *buf_p, int *count_p);
+int com_read(char *buf_p, int *count_p);
+int com_open(int *eflag_p, int baud);
 int com_close(void);
 void interrupt handler(void);
 void input_int(void);
 void output_int(void);
-int com_read(char *buf_p, int *count_p);
-int com_write(char *buf_p, int *count_p);
 
 
 
 typedef struct DeviceControlBlock {
-        int flag;
-        int *event_flag; 
-        int status;
+        int flag; //OPENED, or CLOSED
+        int *event_flag; //SET, or UNSET
+        int status; // IDLE, READING,or WRITING
         char * in_buff;
         int * in_count;
         int in_done;
         char * out_buff;
         int * out_count;
         int out_done;
-        char ring_buffer[RING_BUFFER_SIZE];
+        char ring_buffer[RING_BUFFER_SIZE]; //SIZE = 150
         int ring_buffer_in;
         int ring_buffer_out;
         int ring_buffer_count;
