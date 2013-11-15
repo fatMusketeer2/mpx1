@@ -217,7 +217,7 @@ void input_int(void){
 
          //otherwise the transfer is complete
 		if(tempInput == '\r' || DCB->in_done >= *DCB->in_count) {
-			DCB->in_buff[DCB->in_done] = '\0';
+			DCB->in_buff[DCB->in_done -1] = '\0';
 			*(DCB->event_flag)=SET;
             DCB->status=IDLE;
 		    *(DCB->in_count) = DCB->in_done;
