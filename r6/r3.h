@@ -30,4 +30,35 @@ void initR3();
 //r4 
 void loadProgram(char *, int);
 
+//R6
+typedef struct iod {
+	char name[15];
+	struct PCB *reqPCB;
+	int reqType;
+	char *buffer;
+	int *count;
+	struct iod *next;
+} iod;
 
+typedef struct iod_queue {
+	int count;
+	iod *head;
+	iod *tail;
+} iod_queue;
+
+extern iod_queue *com_iod_q;
+extern iod_queue *terminal_iod_q;
+
+typedef struct iocb {
+	int event_flag;
+	int count;
+	iod *head;
+	iod *tail;
+} iocb;
+
+extern iocb com_iocb;
+extern iocb terminal_iocb;
+
+void ioScheduler();
+void openDeviceDrivers();
+void closeDeviceDrivers();

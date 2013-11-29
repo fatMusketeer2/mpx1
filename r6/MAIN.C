@@ -9,10 +9,14 @@ int main(){
   sys_init(MODULE_R4); //init MODULE_R2
   initR2();
   initR3();
+  openDeviceDrivers();
 	loadComHandler();
 	loadProgram("IDLE",-127);
 	dispatcher();
-	cleanR2();
+  closeDeviceDrivers();
+
+  cleanR2();
+
   write("Exit Succesfull \n");
   sys_exit(); //gracefully exit sys.
 
