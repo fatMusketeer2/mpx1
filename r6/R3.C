@@ -75,7 +75,7 @@ void interrupt sys_call()
 		  else if(terminal_iocb.head->reqType==GOTOXY)
 			result=trm_gotoxy(0,0);
 		  if(result!=0)
-			write("ERROR!!");
+			printf("ERROR!!\n");
 
 
 		}
@@ -96,12 +96,12 @@ void interrupt sys_call()
 			result=com_write(terminal_iocb.head->buffer,terminal_iocb.head->count);
 
 		  if(result!=0)
-			write("ERROR!!");
+			printf("ERROR!!\n");
 
 
 		}
 
-
+	//printf("EVENT flag not set!!\n");
 	//end r6 mod
 
 	if(param_ptr->op_code == IDLE) {
@@ -135,6 +135,13 @@ void initR3() {
 		ss = NULL;
 		sp = NULL;
 	cop = NULL;
+
+	terminal_iocb.event_flag=0;
+	terminal_iocb.count=0;
+	terminal_iocb.head= NULL;
+	terminal_iocb.tail= NULL;
+
+
 
 }
 
@@ -180,8 +187,9 @@ void loadProgram(char* file, int priority) {
 				free(newPCB);
 	} else {
 		insertPCB(newPCB);
+				printf("First HERE!!\n");
 				write("Process is loaded in the suspend-ready queue\n");
-	}
+				printf("AND here\n"); }
 
 }
 
@@ -215,7 +223,7 @@ void ioScheduler(){
 		  else if(terminal_iocb.head->reqType==GOTOXY)
 			result=trm_gotoxy(0,0);
 		  if(result!=0)
-			write("ERROR!!");
+			printf("ERROR!!");
 		  else
 			blockPCB(terminal_iocb.head->name);
 
@@ -252,7 +260,7 @@ void ioScheduler(){
 			result=com_write(terminal_iocb.head->buffer,terminal_iocb.head->count);
 
 		  if(result!=0)
-			write("ERROR!!");
+			printf("ERROR!!");
 		  else
 			blockPCB(com_iocb.head->name);
 
@@ -269,8 +277,8 @@ void ioScheduler(){
 }//end ioScheduler
 
 void openDeviceDrivers(){
- trm_open(terminal_iocb.event_flag);
- com_open(com_iocb.event_flag,1200);
+ trm_open(&terminal_iocb.event_flag);
+ com_open(&com_iocb.event_flag,1200);
 }
 
 void closeDeviceDrivers(){

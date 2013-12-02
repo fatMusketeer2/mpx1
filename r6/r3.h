@@ -40,15 +40,6 @@ typedef struct iod {
 	struct iod *next;
 } iod;
 
-typedef struct iod_queue {
-	int count;
-	iod *head;
-	iod *tail;
-} iod_queue;
-
-extern iod_queue *com_iod_q;
-extern iod_queue *terminal_iod_q;
-
 typedef struct iocb {
 	int event_flag;
 	int count;

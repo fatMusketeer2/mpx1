@@ -6,12 +6,14 @@ Shell* MainShell;
 
 int main(){
 
-  sys_init(MODULE_R4); //init MODULE_R2
+  sys_init(MODULE_F); //init MODULE_R2
   initR2();
   initR3();
   openDeviceDrivers();
 	loadComHandler();
 	loadProgram("IDLE",-127);
+
+	showAllPCB();
 	dispatcher();
   closeDeviceDrivers();
 
@@ -64,6 +66,7 @@ void prompt(){
        //	removePCB("IDLE");
        //	freePCB("IDLE");
        deletePCB("IDLE");
+       sys_req(EXIT,NO_DEV,NULL, 0);
        //deletePCB("ComHandler");
 	}
     if(result == 0 && strlen(input) != 0) write("Command not found!\n"); //command not valid
