@@ -1,7 +1,8 @@
 
 #include "commands.h"
 #include "main.h"
-#include "r5.h"
+
+
 int executeCommand(int op, char* command){
 
 	if(strcmpi(command, "exit") == 0) quit(op);

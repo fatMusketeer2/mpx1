@@ -63,11 +63,9 @@ void prompt(){
     if(strcmpi(command, "exit") == 0){
 	write("Exiting..\n");
 	MainShell->isRunning = 0; //catch exit command.
-       //	removePCB("IDLE");
-       //	freePCB("IDLE");
-       deletePCB("IDLE");
-       sys_req(EXIT,NO_DEV,NULL, 0);
-       //deletePCB("ComHandler");
+ 
+	   emptyQueues();
+		
 	}
     if(result == 0 && strlen(input) != 0) write("Command not found!\n"); //command not valid
 

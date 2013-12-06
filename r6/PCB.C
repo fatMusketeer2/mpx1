@@ -76,6 +76,9 @@ PCB* setupPCB(char * procName, int procPriority, int procClass){
 	newPCB->next = NULL;
 	newPCB->prev = NULL;
 	newPCB->memorySize = SYS_STACK_SIZE;
+	if(strcmp(newPCB->name, "ComHandler") == 0){
+		newPCB->memorySize = SYS_STACK_SIZE *2;
+	}
 	return newPCB;
 }
 
@@ -494,6 +497,15 @@ void showAllPCB(){
 
 void cleanR2(){
 
+	emptyQueues();
+
+	sys_free_mem(readyQ);
+	sys_free_mem(suspReadyQ);
+	sys_free_mem(blockedQ);
+	sys_free_mem(suspBlockedQ);
+}
+
+void emptyQueues(){
 	 PCB * curr = readyQ->head;
 
 	while(curr != NULL){
@@ -524,10 +536,6 @@ void cleanR2(){
 		curr = suspBlockedQ->head;
 	}
 
-	sys_free_mem(readyQ);
-	sys_free_mem(suspReadyQ);
-	sys_free_mem(blockedQ);
-	sys_free_mem(suspBlockedQ);
 }
 
 

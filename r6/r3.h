@@ -47,8 +47,8 @@ typedef struct iocb {
 	iod *tail;
 } iocb;
 
-extern iocb com_iocb;
-extern iocb terminal_iocb;
+extern iocb* com_iocb;
+extern iocb* terminal_iocb;
 
 void ioScheduler();
 void openDeviceDrivers();

@@ -64,3 +64,4 @@ int showReadyPCB(int showAll);
 int showBlockedPCB(int showAll);
 void showAllPCB();
 PCB* getNextReady();
+void emptyQueues();

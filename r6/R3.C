@@ -14,8 +14,8 @@ char sys_stack[SYS_STACK_SIZE];
 params *param_ptr;
 iod *tempIOD;
 
-iocb terminal_iocb;
-iocb com_iocb;
+iocb* terminal_iocb;
+iocb* com_iocb;
 
 void interrupt dispatcher()
 {
@@ -42,85 +42,74 @@ void interrupt dispatcher()
 
 void interrupt sys_call()
 {
-	int result;
+		ss_save = _SS;
+        sp_save = _SP;
+        param_ptr = (params*)((unsigned char *)MK_FP(ss_save, sp_save) + sizeof(context));
+        new_ss = FP_SEG(&sys_stack);
+        new_sp = FP_OFF(&sys_stack) + SYS_STACK_SIZE;
+        _SS = new_ss;
+        _SP = new_sp;
+        
+		trm_getc();
+        if(terminal_iocb->event_flag){
+				
+                terminal_iocb->event_flag=0;
+                tempIOD=terminal_iocb->head;
+                terminal_iocb->head=terminal_iocb->head->next;
+                //free(tempIOD);
+                terminal_iocb->count--;
+			
+                unblockPCB(tempIOD->name);
+				
+                 //process request
+                 if(tempIOD->reqType==READ)
+                        trm_read(tempIOD->buffer,terminal_iocb->head->count);
+                 else if(tempIOD->reqType==WRITE)
+                        trm_write(tempIOD->buffer,terminal_iocb->head->count);
+                 else if(tempIOD->reqType==CLEAR)
+                        trm_clear();
+			free(tempIOD);
+        }
+        if(com_iocb->event_flag){
+                com_iocb->event_flag=0;
+                tempIOD=com_iocb->head;
+                com_iocb->head=com_iocb->head->next;
+                free(tempIOD);
+                com_iocb->count--;
 
-	ss_save = _SS;
-	sp_save = _SP;
-	param_ptr = (params*)((unsigned char *)MK_FP(ss_save, sp_save) + sizeof(context));
+                unblockPCB(tempIOD->name);
 
-	new_ss = FP_SEG(&sys_stack);
-	new_sp = FP_OFF(&sys_stack) + SYS_STACK_SIZE;
-	_SS = new_ss;
-	_SP = new_sp;
+                 //process request
 
-	//r6 mod
-	trm_getc();
-	if(terminal_iocb.event_flag){
-		terminal_iocb.event_flag=0;
-		tempIOD=terminal_iocb.head;
-		terminal_iocb.head=terminal_iocb.head->next;
-		free(tempIOD);
-		terminal_iocb.count--;
+                 if(com_iocb->head->reqType==READ)
+                        com_read(com_iocb->head->buffer,com_iocb->head->count);
+                 else if(terminal_iocb->head->reqType==WRITE)
+                        com_write(terminal_iocb->head->buffer,terminal_iocb->head->count);
 
-		unblockPCB(tempIOD->name);
-
-		 //process request
-
-		  if(terminal_iocb.head->reqType==READ)
-			result=trm_read(terminal_iocb.head->buffer,terminal_iocb.head->count);
-		  else if(terminal_iocb.head->reqType==WRITE)
-			result=trm_write(terminal_iocb.head->buffer,terminal_iocb.head->count);
-		  else if(terminal_iocb.head->reqType==CLEAR)
-			result=trm_clear();
-		  else if(terminal_iocb.head->reqType==GOTOXY)
-			result=trm_gotoxy(0,0);
-		  if(result!=0)
-			printf("ERROR!!\n");
-
-
-		}
-	if(com_iocb.event_flag){
-		com_iocb.event_flag=0;
-		tempIOD=com_iocb.head;
-		com_iocb.head=com_iocb.head->next;
-		free(tempIOD);
-		com_iocb.count--;
-
-		unblockPCB(tempIOD->name);
-
-		 //process request
-
-		  if(com_iocb.head->reqType==READ)
-			result=com_read(com_iocb.head->buffer,com_iocb.head->count);
-		  else if(terminal_iocb.head->reqType==WRITE)
-			result=com_write(terminal_iocb.head->buffer,terminal_iocb.head->count);
-
-		  if(result!=0)
-			printf("ERROR!!\n");
-
-
-		}
-
-	//printf("EVENT flag not set!!\n");
-	//end r6 mod
-
-	if(param_ptr->op_code == IDLE) {
-		//removePCB(cop);
-		cop->state = READY;
-		cop->stackTop = (unsigned char *)MK_FP(ss_save,sp_save);
-		insertPCB(cop);
-	}
-
-	else if(param_ptr->op_code == READ || param_ptr->op_code == WRITE||param_ptr->op_code == CLEAR  || param_ptr->op_code == GOTOXY)
-		ioScheduler();
-	else {
-		//removePCB(cop);
-		freePCB(cop);
-		cop = NULL;
-	}
-	_SS = ss_save;
-	_SP = sp_save;
-	dispatcher();
+        }
+		
+		
+         switch(param_ptr->op_code){
+             case IDLE:
+				
+				cop->state = READY;
+				cop->stackTop = (unsigned char *)MK_FP(ss_save,sp_save);
+				insertPCB(cop);
+                break;
+			case READ:
+			case WRITE:
+			case CLEAR:
+				ioScheduler();
+			break;
+            case EXIT:
+				freePCB(cop);
+				cop = NULL;
+                break;
+        }
+        _SS = ss_save;
+        _SP = sp_save;
+		
+        dispatcher();
 }
 
 
@@ -136,10 +125,10 @@ void initR3() {
 		sp = NULL;
 	cop = NULL;
 
-	terminal_iocb.event_flag=0;
-	terminal_iocb.count=0;
-	terminal_iocb.head= NULL;
-	terminal_iocb.tail= NULL;
+	terminal_iocb->event_flag=0;
+	terminal_iocb->count=0;
+	terminal_iocb->head= NULL;
+	terminal_iocb->tail= NULL;
 
 
 
@@ -187,98 +176,100 @@ void loadProgram(char* file, int priority) {
 				free(newPCB);
 	} else {
 		insertPCB(newPCB);
-				printf("First HERE!!\n");
-				write("Process is loaded in the suspend-ready queue\n");
-				printf("AND here\n"); }
+		printf("First HERE!!\n");
+		write("Process is loaded in the suspend-ready queue\n");
+		printf("AND here\n");
+		}
 
 }
 
 void ioScheduler(){
-
-	int result;
-
+	
+	       static int result;
+		
  if(param_ptr->device_id==TERMINAL){
-	iod *newIOD;
-	newIOD = (iod *)sys_alloc_mem(sizeof(struct iod));
-	newIOD->reqPCB=cop;
-	strcpy(newIOD->name,cop->name);
-	newIOD->buffer=param_ptr->buf_addr;
-	newIOD->count=param_ptr->count_ddr;
-	newIOD->reqType=param_ptr->op_code;
+        iod *newIOD;
+        newIOD = (iod *)sys_alloc_mem(sizeof(struct iod));
+        newIOD->reqPCB=cop;
+        strcpy(newIOD->name,cop->name);
+        newIOD->buffer=param_ptr->buf_addr;
+        newIOD->count=param_ptr->count_ddr;
+        newIOD->reqType=param_ptr->op_code;
 
-	//if waiting queue for device is empty
-	if(terminal_iocb.count==0){
-		  terminal_iocb.head=newIOD;
-		  terminal_iocb.tail=newIOD;
-		  terminal_iocb.count++;
+        //if waiting queue for device is empty
+        if(terminal_iocb->count==0){
+                 terminal_iocb->head=newIOD;
+                 terminal_iocb->tail=newIOD;
+                 terminal_iocb->count++;
 
-		  //process request
+                 //process request
 
-		  if(terminal_iocb.head->reqType==READ)
-			result=trm_read(terminal_iocb.head->buffer,terminal_iocb.head->count);
-		  else if(terminal_iocb.head->reqType==WRITE)
-			result=trm_write(terminal_iocb.head->buffer,terminal_iocb.head->count);
-		  else if(terminal_iocb.head->reqType==CLEAR)
-			result=trm_clear();
-		  else if(terminal_iocb.head->reqType==GOTOXY)
-			result=trm_gotoxy(0,0);
-		  if(result!=0)
-			printf("ERROR!!");
-		  else
-			blockPCB(terminal_iocb.head->name);
+                 if(terminal_iocb->head->reqType==READ)
+                        result=trm_read(terminal_iocb->head->buffer,terminal_iocb->head->count);
+                 else if(terminal_iocb->head->reqType==WRITE)
+                        result=trm_write(terminal_iocb->head->buffer,terminal_iocb->head->count);
+                 else if(terminal_iocb->head->reqType==CLEAR)
+                        result=trm_clear();
+                 if(result!=0)
+                        printf("ERROR!!");
+                 else
+                        blockPCB(terminal_iocb->head->name);
 
-		}
-	//if waiting queue for device is not empty
-	else{
-		terminal_iocb.tail->next=newIOD;
-		terminal_iocb.tail=newIOD;
-		terminal_iocb.count++;
+                }
+        //if waiting queue for device is not empty
+        else{
+                terminal_iocb->tail->next=newIOD;
+                terminal_iocb->tail=newIOD;
+                terminal_iocb->count++;
 
-		}
-	}
+                }
+        }
 
  else if(param_ptr->device_id==COM_PORT){
-	iod *newIOD;
-	newIOD = (iod *)sys_alloc_mem(sizeof(struct iod));
-	newIOD->reqPCB=cop;
-	strcpy(newIOD->name,cop->name);
-	newIOD->buffer=param_ptr->buf_addr;
-	newIOD->count=param_ptr->count_ddr;
-	newIOD->reqType=param_ptr->op_code;
+        iod *newIOD;
+        newIOD = (iod *)sys_alloc_mem(sizeof(struct iod));
+        newIOD->reqPCB=cop;
+        strcpy(newIOD->name,cop->name);
+        newIOD->buffer=param_ptr->buf_addr;
+        newIOD->count=param_ptr->count_ddr;
+        newIOD->reqType=param_ptr->op_code;
 
-	//if waiting queue for device is empty
-	if(com_iocb.count==0){
-		  com_iocb.head=newIOD;
-		  com_iocb.tail=newIOD;
-		  com_iocb.count++;
+        //if waiting queue for device is empty
+        if(com_iocb->count==0){
+                 com_iocb->head=newIOD;
+                 com_iocb->tail=newIOD;
+                 com_iocb->count++;
 
-		  //process request
+                 //process request
 
-		  if(com_iocb.head->reqType==READ)
-			result=com_read(com_iocb.head->buffer,com_iocb.head->count);
-		  else if(terminal_iocb.head->reqType==WRITE)
-			result=com_write(terminal_iocb.head->buffer,terminal_iocb.head->count);
+                 if(com_iocb->head->reqType==READ)
+                        result=com_read(com_iocb->head->buffer,com_iocb->head->count);
+                 else if(terminal_iocb->head->reqType==WRITE)
+                        result=com_write(terminal_iocb->head->buffer,terminal_iocb->head->count);
 
-		  if(result!=0)
-			printf("ERROR!!");
-		  else
-			blockPCB(com_iocb.head->name);
+                 if(result!=0)
+                        printf("ERROR!!");
+                 else
+                        blockPCB(com_iocb->head->name);
 
-		}
-	//if waiting queue for device is not empty
-	else{
-		com_iocb.tail=newIOD;
-		com_iocb.count++;
+                }
+        //if waiting queue for device is not empty
+        else{
+                com_iocb->tail=newIOD;
+                com_iocb->count++;
 
-		}
-	}
+                }
+        }
 
 
 }//end ioScheduler
 
 void openDeviceDrivers(){
- trm_open(&terminal_iocb.event_flag);
- com_open(&com_iocb.event_flag,1200);
+
+ terminal_iocb = (iocb *) sys_alloc_mem(sizeof(iocb));
+ com_iocb = (iocb *) sys_alloc_mem(sizeof(iocb));
+ trm_open(&terminal_iocb->event_flag);
+ com_open(&com_iocb->event_flag,1200);
 }
 
 void closeDeviceDrivers(){
