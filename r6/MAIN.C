@@ -11,7 +11,7 @@ int main(){
   initR3();
   openDeviceDrivers();
 	loadComHandler();
-	loadProgram("IDLE",-127);
+	loadProgram("IDLE",-128);
 
 	showAllPCB();
 	dispatcher();
@@ -65,6 +65,7 @@ void prompt(){
 	MainShell->isRunning = 0; //catch exit command.
  
 	   emptyQueues();
+	   dispatcher();
 		
 	}
     if(result == 0 && strlen(input) != 0) write("Command not found!\n"); //command not valid

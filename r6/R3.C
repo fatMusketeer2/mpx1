@@ -152,10 +152,10 @@ void initR3() {
 	terminal_iocb->head= NULL;
 	terminal_iocb->tail= NULL;
 
-	comm_iocb->event_flag=0;
-	comm_iocb->count=0;
-	comm_iocb->head= NULL;
-	comm_iocb->tail= NULL;
+	com_iocb->event_flag=0;
+	com_iocb->count=0;
+	com_iocb->head= NULL;
+	com_iocb->tail= NULL;
 
 
 
