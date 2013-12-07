@@ -17,6 +17,15 @@ iod *tempIOD;
 iocb* terminal_iocb;
 iocb* com_iocb;
 
+// ***************************************************************************
+// Dispatcher
+// Parameters: none
+// Returns: nothing
+// Functions called: getNextReady, removePCB
+// Prepares the first process of the ready queue for execution by switching to
+// 	its stack. 
+
+
 void interrupt dispatcher()
 {
 	if(ss == NULL) {
@@ -39,6 +48,13 @@ void interrupt dispatcher()
 		_SP = new_sp;
 	}
 }
+
+// ****************************************************************************
+// sys_call
+// Parameters: none
+// Returns: nothing
+// Functions called: UnblockPCB, trm_read, trm_write, trm_clear, free, com_read,
+// 	com_write, insertPCB, ioScheduler, dispatcher.
 
 void interrupt sys_call()
 {
@@ -112,6 +128,12 @@ void interrupt sys_call()
         dispatcher();
 }
 
+//******************************************************************************
+//Parameter: none 
+//Returns: nothing 
+//Functions called: sys_set_vec
+//sets up temporary register variables for stack segment and stack pointer.
+//Sets up control structures for I/O devices 
 
 void initR3() {
 
@@ -130,9 +152,22 @@ void initR3() {
 	terminal_iocb->head= NULL;
 	terminal_iocb->tail= NULL;
 
+	comm_iocb->event_flag=0;
+	comm_iocb->count=0;
+	comm_iocb->head= NULL;
+	comm_iocb->tail= NULL;
+
 
 
 }
+
+//******************************************************************************
+// loadProgram
+// Parameters: file- name of MPX file to be loaded
+//	      priority- integer from 127 to -128 
+// Functions called: sys_check_program, write, setupPCB, sys_load_program
+//	insertPCB
+// Allocates program memory and loads program into that memory
 
 void loadProgram(char* file, int priority) {
 
@@ -182,6 +217,14 @@ void loadProgram(char* file, int priority) {
 		}
 
 }
+
+//******************************************************************************
+// ioScheduler
+// Parameters: none
+// Returns: nothing
+// Functions called: sys_alloc_mem, strcpy, trm_read, trm_write, trm_clear,
+// 	trm_gotoxy, blockPCB, com_read, com_write
+//Opens terminal and com_port devices
 
 void ioScheduler(){
 	
@@ -264,6 +307,13 @@ void ioScheduler(){
 
 }//end ioScheduler
 
+//******************************************************************************
+// openDeviceDrivers
+// Parameters: none
+// Returns: nothing
+// Functions called: sys_alloc_mem, sizeof, trm_open, com_open
+// Opens terminal and com_port devices
+
 void openDeviceDrivers(){
 
  terminal_iocb = (iocb *) sys_alloc_mem(sizeof(iocb));
@@ -271,6 +321,14 @@ void openDeviceDrivers(){
  trm_open(&terminal_iocb->event_flag);
  com_open(&com_iocb->event_flag,1200);
 }
+
+
+//******************************************************************************
+// closeDeviceDrivers
+// Parameters: none
+// Returns: nothing
+// Functions called: trm_close, com_close
+// closes terminal and com_port devices
 
 void closeDeviceDrivers(){
 	trm_close();
