@@ -1,4 +1,3 @@
-
 #include "main.h"
 #include "commands.h"
 
@@ -48,7 +47,7 @@ void prompt(){
 	char *command, *input, *arg;
 
   MainShell->isRunning = 1; // set isRunning to true.
-  clear();
+  
   write("WELCOME to MPX \n");
   write("Type HELP for a command list\n\n");
 	while(MainShell->isRunning){ //loop while MainShell is running.
