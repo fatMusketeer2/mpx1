@@ -60,18 +60,19 @@ void interrupt dispatcher()
 
 void interrupt sys_call()
 {
-		
 		ss_save = _SS;
         sp_save = _SP;
-		param_ptr = (params*)((unsigned char *)MK_FP(ss_save, sp_save) + sizeof(context));
-        new_ss = FP_SEG(&sys_stack);
-        new_sp = FP_OFF(&sys_stack) + SYS_STACK_SIZE * 4;
+
+		//param_ptr = (params*)(cop->top + sizeof(context));
+        new_ss = FP_SEG(sys_stack);
+        new_sp = FP_OFF(sys_stack) + SYS_STACK_SIZE;
         _SS = new_ss;
         _SP = new_sp;
-       
+		param_ptr = (params*)((unsigned char *)MK_FP(ss_save, sp_save) + sizeof(context));
 		//R6 Modifications
 		trm_getc();
-		
+		sleep(1);
+	//param_ptr = (params*)(cop->stackTop + sizeof(context));
         if(terminal_iocb->event_flag){
 				terminal_iocb->event_flag=0;
 				tempIOD=terminal_iocb->head;
@@ -82,7 +83,7 @@ void interrupt sys_call()
 				insertPCB(tempIOD->reqPCB);	
 
                 sys_free_mem(tempIOD);
-				//terminal_iocb->count--;	
+				
 				
 				
 				
@@ -117,10 +118,8 @@ void interrupt sys_call()
 
         }
 		
-
          switch(param_ptr->op_code){
              case IDLE:
-	
 				cop->state = READY;
 				cop->stackTop = (unsigned char *)MK_FP(ss_save,sp_save);
 				insertPCB(cop);
@@ -137,9 +136,9 @@ void interrupt sys_call()
         }
         _SS = ss_save;
         _SP = sp_save;
-		
-        dispatcher();
+	
 }
+
 
 //******************************************************************************
 //Parameter: none 
@@ -258,12 +257,13 @@ void ioScheduler(){
 					 newIOCB->head=newIOD;
 					 newIOCB->tail=newIOD;
 					 newIOCB->count++;
-					 
+					
 					 //if read and terminal
-					if(newIOD->reqType==READ && param_ptr->device_id == TERMINAL)
+					 
+					if(newIOD->reqType==READ && param_ptr->device_id == TERMINAL){
 							trm_read(newIOCB->head->buffer,newIOCB->head->count);
 					//if write and terminal
-					else if(newIOD->reqType==WRITE && param_ptr->device_id == TERMINAL)
+					}else if(newIOD->reqType==WRITE && param_ptr->device_id == TERMINAL)
 						   trm_write(newIOCB->head->buffer,newIOCB->head->count);
 					//if clear and terminal
 					else if(newIOD->reqType==CLEAR && param_ptr->device_id == TERMINAL)
