@@ -71,7 +71,7 @@ void interrupt sys_call()
 		param_ptr = (params*)((unsigned char *)MK_FP(ss_save, sp_save) + sizeof(context));
 		//R6 Modifications
 		trm_getc();
-		sleep(1);
+	
 	//param_ptr = (params*)(cop->stackTop + sizeof(context));
         if(terminal_iocb->event_flag){
 				terminal_iocb->event_flag=0;
