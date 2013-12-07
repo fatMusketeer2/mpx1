@@ -18,7 +18,7 @@ int main(){
 
   cleanR2();
 
-  write("Exit Succesfull \n");
+  
   sys_exit(); //gracefully exit sys.
 
   return 0;
